@@ -11,7 +11,7 @@ object CmdHelper {
 
   implicit class CmdExecutor(cmd: String) extends LazyLogging {
 
-    def exec: Future[String] = Future {
+    def exec(onOutput: (String) => Unit): Future[String] = Future {
       logger.debug(s"Executing $cmd")
       val proc = Runtime.getRuntime.exec(cmd)
 
@@ -19,16 +19,13 @@ object CmdHelper {
         new InputStreamReader(proc.getInputStream)
       )
 
-      val output = reader.lines.iterator.asScala.fold("") { (acc, in) =>
-        logger.info(in)
-        acc+"\n"+in
-      }
-
+      reader.lines.iterator.asScala.foreach(onOutput)
+      
       val exitValue = proc.waitFor
       if (exitValue != 0)
         throw new IllegalStateException(s"\'$cmd\' exited with code $exitValue")
 
-      output
+      "YOLO"
     }
 
   }
