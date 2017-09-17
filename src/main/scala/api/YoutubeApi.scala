@@ -1,18 +1,25 @@
 package api
 
-import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import example.domain.Greeting
+import example.domain.{ YoutubeVideoUrl, YoutubeVideoUuid }
 import util.JsonSupport
 
 trait YoutubeApi extends JsonSupport {
 
-  implicit def system: ActorSystem
-
-  lazy val greetingRoute: Route = get {
-    path("yt" / "video" / Segment) { videoUrl =>
-      complete("OK")
+  lazy val youtubeRoute = post {
+    path("yt" / "video") {
+      entity(as[YoutubeVideoUrl]) { videoUrl =>
+        complete(yt.YoutubeService.downloadVideo(videoUrl.videoUrl))
+      }
+    }
+  } ~ get {
+    pathPrefix("yt" / "download" / Segment) { videoUuid =>
+      pathEnd {
+        yt.YoutubeService.getFilePath(videoUuid) match {
+          case Some(absFilePath) => getFromFile(absFilePath)
+          case None              => reject
+        }
+      }
     }
   }
 }

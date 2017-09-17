@@ -7,25 +7,35 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object CmdHelper {
+object CmdHelper extends LazyLogging {
 
-  implicit class CmdExecutor(cmd: String) extends LazyLogging {
+  case class StIO(
+    stdOut: (String) => Unit = logger.info(_),
+    stdErr: (String) => Unit = logger.error(_)
+  )
 
-    def exec(onOutput: (String) => Unit): Future[String] = Future {
-      logger.debug(s"Executing $cmd")
+  implicit class CmdExecutor(cmd: String) {
+
+    def exec(onStdIO: StIO = StIO()): Future[Unit] = Future {
+      logger.info(s"Executing $cmd")
       val proc = Runtime.getRuntime.exec(cmd)
 
-      val reader = new BufferedReader(
+      val stdOutReader = new BufferedReader(
         new InputStreamReader(proc.getInputStream)
       )
 
-      reader.lines.iterator.asScala.foreach(onOutput)
-      
+      val stdErrReader = new BufferedReader(
+        new InputStreamReader(proc.getErrorStream)
+      )
+
+      //bind buffered reader's iterator to callback(s)
+      stdOutReader.lines.iterator.asScala.foreach(onStdIO.stdOut)
+      stdErrReader.lines.iterator.asScala.foreach(onStdIO.stdErr)
+
       val exitValue = proc.waitFor
       if (exitValue != 0)
         throw new IllegalStateException(s"\'$cmd\' exited with code $exitValue")
 
-      "YOLO"
     }
 
   }

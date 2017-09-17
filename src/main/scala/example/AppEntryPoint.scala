@@ -16,7 +16,7 @@ object AppEntryPoint extends App with YoutubeApi with LazyLogging {
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContext = system.dispatcher
 
-  lazy val routes: Route = greetingRoute
+  lazy val routes: Route = youtubeRoute
 
   lazy val config = com.typesafe.config.ConfigFactory.load()
 

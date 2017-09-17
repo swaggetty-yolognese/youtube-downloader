@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ ContentTypes, StatusCodes }
 import akka.http.scaladsl.testkit.Specs2RouteTest
 import api.YoutubeApi
-import example.domain.Greeting
+import example.domain.YoutubeVideoUrl
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
@@ -12,7 +12,7 @@ class GreetingApiSpec extends Specification with Specs2RouteTest {
 
   trait mockedScope extends YoutubeApi with Scope {
 
-    lazy val routes = greetingRoute
+    lazy val routes = youtubeRoute
     implicit val system = ActorSystem("test")
 
   }
@@ -28,7 +28,7 @@ class GreetingApiSpec extends Specification with Specs2RouteTest {
         handled === true
         status === (StatusCodes.OK)
         contentType === (ContentTypes.`application/json`)
-        val resultGreeting = entityAs[Greeting]
+        val resultGreeting = entityAs[YoutubeVideoUrl]
         resultGreeting.daGreeting === "Hello "+greetingName
 
       }
