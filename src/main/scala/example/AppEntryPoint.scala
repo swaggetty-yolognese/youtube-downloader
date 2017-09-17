@@ -5,12 +5,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
-import api.GreetingApi
+import api.YoutubeApi
 import com.typesafe.scalalogging.LazyLogging
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-object AppEntryPoint extends App with GreetingApi with LazyLogging {
+object AppEntryPoint extends App with YoutubeApi with LazyLogging {
 
   implicit val system: ActorSystem = ActorSystem("defaultActorSystem")
   implicit val materializer: ActorMaterializer = ActorMaterializer()

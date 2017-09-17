@@ -3,14 +3,14 @@ package example
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.{ ContentTypes, StatusCodes }
 import akka.http.scaladsl.testkit.Specs2RouteTest
-import api.GreetingApi
+import api.YoutubeApi
 import example.domain.Greeting
 import org.specs2.mutable.Specification
 import org.specs2.specification.Scope
 
 class GreetingApiSpec extends Specification with Specs2RouteTest {
 
-  trait mockedScope extends GreetingApi with Scope {
+  trait mockedScope extends YoutubeApi with Scope {
 
     lazy val routes = greetingRoute
     implicit val system = ActorSystem("test")

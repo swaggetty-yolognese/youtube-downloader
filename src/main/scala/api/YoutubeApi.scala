@@ -6,13 +6,13 @@ import akka.http.scaladsl.server.Route
 import example.domain.Greeting
 import util.JsonSupport
 
-trait GreetingApi extends JsonSupport {
+trait YoutubeApi extends JsonSupport {
 
   implicit def system: ActorSystem
 
   lazy val greetingRoute: Route = get {
-    path("hello" / Segment) { name =>
-      complete(Greeting(name))
+    path("yt" / "video" / Segment) { videoUrl =>
+      complete("OK")
     }
   }
 }
