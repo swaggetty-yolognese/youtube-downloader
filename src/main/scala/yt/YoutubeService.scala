@@ -11,17 +11,22 @@ object YoutubeService extends LazyLogging {
 
   val urlsToFile = scala.collection.mutable.Map[String, String]()
 
-  final private val fileNameRegex = "[".r
+  final private val downloadFolder = "downloads"
+  final private val filenamePrefix = "track"
+  final private val fileNameRegex = s"$downloadFolder\\/$filenamePrefix-[a-zA-Z0-9]+.mp3".r
+
+  final private val youtubeDlOptions = "--config-location /home/andrea/workspace/youtube_converter_api/youtube_dl.conf"
 
   def downloadVideo(videoUrl: String): Future[String] = {
 
     var fileName = ""
 
-    val downloadF = s"youtube-dl".exec(StIO(stdOut = { out =>
+    val downloadF = s"youtube-dl $youtubeDlOptions $videoUrl".exec(StIO(stdOut = { out =>
 
-      out match {
-        case fileNameRegex(_*) =>
-          fileName = ""
+      fileNameRegex.findFirstIn(out) match {
+        case Some(matching) =>
+          fileName = matching
+        case None =>
       }
 
     }))
@@ -39,7 +44,7 @@ object YoutubeService extends LazyLogging {
       val uuid = UUID.randomUUID().toString
 
       logger.info(s"storing ($uuid, ${outFile.getAbsolutePath}")
-      urlsToFile.put(uuid, outFile.getAbsolutePath)
+      urlsToFile += uuid -> outFile.getAbsolutePath
 
       uuid
 
@@ -47,6 +52,21 @@ object YoutubeService extends LazyLogging {
 
   }
 
-  def getFilePath(uuid: String): Option[String] = urlsToFile.get(uuid)
+  def getFilePath(uuid: String): File = {
+
+    val file = urlsToFile.get(uuid) match {
+      case None       => throw new IllegalArgumentException(s"UUID not found $uuid")
+      case Some(path) => new File(path)
+    }
+
+    if (!file.exists)
+      throw new IllegalStateException(s"File not fount for $uuid at ${urlsToFile.get(uuid).get}")
+
+    //remove from map
+    urlsToFile -= uuid
+
+    //remove file after serving it
+    file
+  }
 
 }
