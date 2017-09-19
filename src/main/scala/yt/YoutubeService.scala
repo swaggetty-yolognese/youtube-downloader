@@ -24,6 +24,10 @@ object YoutubeService extends LazyLogging {
     val downloadF = s"youtube-dl $youtubeDlOptions $videoUrl".exec(StIO(stdOut = { out =>
       logger.debug(out)
 
+      "(\\d\\.\\d || \\d\\d\\.\\d || \\d\\d\\d\\.\\d)%".r.findFirstIn(out) map { matched =>
+        logger.info(s"Download $matched")
+      }
+
       fileNameRegex.findFirstIn(out) match {
         case Some(matching) =>
           fileName = matching
@@ -61,7 +65,7 @@ object YoutubeService extends LazyLogging {
 
     val file = new File(path.get)
     if (!file.exists)
-      throw new IllegalStateException(s"File not fount for $uuid at $path")
+      throw new IllegalStateException(s"File not found for $uuid at $path")
 
     //remove from map
     //logger.debug(s"removing $uuid")

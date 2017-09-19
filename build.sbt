@@ -10,7 +10,7 @@ lazy val akkaHttpVersion = "10.0.10"
 lazy val akkaVersion    = "2.5.4"
 lazy val json4sVersion    = "3.5.3"
 
-lazy val baseDockerImageName = "ytDl:alpine_jdk_ytDl"
+lazy val baseDockerImageName = "yt_dl:alpine_jdk_ytDl"
 
 lazy val buildBaseImage = taskKey[Unit]("Build base docker image")
 buildBaseImage := {
