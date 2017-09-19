@@ -62,13 +62,13 @@ object YoutubeService extends LazyLogging {
 
     val file = new File(path.get)
     if (!file.exists)
-      throw new IllegalStateException(s"File not fount for $uuid at ${urlsToFile.get(uuid).get}")
+      throw new IllegalStateException(s"File not fount for $uuid at $path")
 
     //remove from map
-    // logger.debug(s"REMOVING UUID FROM THE MAP")
-    // urlsToFile -= uuid
+    logger.debug(s"removing $uuid")
+    urlsToFile -= uuid
 
-    //remove file after serving it
+    //TODO remove file after serving it
     file
   }
 

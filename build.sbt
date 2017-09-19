@@ -40,7 +40,7 @@ lazy val root = (project in file(".")).
     )
   )
 
-dockerBaseImage := "openjdk:8-jre-alpine"
+dockerBaseImage := "c79255aa3aed"
 
 lazy val scalariformPref = Def.setting {
   ScalariformKeys.preferences.value
