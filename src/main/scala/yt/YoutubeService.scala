@@ -16,10 +16,9 @@ object YoutubeService extends LazyLogging {
   final private val filenamePrefix = config.getString("application.fileNamePrefix")
   final private val fileNameRegex = s"$downloadFolder\\/$filenamePrefix-[a-zA-z0-9\\w\\-\\_]+.mp3".r //FIXME enforce max size of youtube-id
 
-  final private val youtubeDlOptions = "--config-location ./youtube_dl.conf"
+  final private val youtubeDlOptions = s"-x --audio-format mp3 -o $downloadFolder/$filenamePrefix-%(id)s.mp3"
 
   def downloadVideo(videoUrl: String): Future[String] = {
-
     var fileName = ""
 
     val downloadF = s"youtube-dl $youtubeDlOptions $videoUrl".exec(StIO(stdOut = { out =>
@@ -41,7 +40,7 @@ object YoutubeService extends LazyLogging {
       val outFile = new File(fileName)
 
       if (!outFile.exists)
-        throw new FileNotFoundException("Downloaded file could not found")
+        throw new FileNotFoundException("Downloaded file does not exist")
 
       val uuid = UUID.randomUUID().toString
 
@@ -65,8 +64,8 @@ object YoutubeService extends LazyLogging {
       throw new IllegalStateException(s"File not fount for $uuid at $path")
 
     //remove from map
-    logger.debug(s"removing $uuid")
-    urlsToFile -= uuid
+    //logger.debug(s"removing $uuid")
+    //urlsToFile -= uuid
 
     //TODO remove file after serving it
     file

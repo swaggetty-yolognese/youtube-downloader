@@ -1,13 +1,29 @@
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import scalariform.formatter.preferences._
 
-enablePlugins(JavaAppPackaging)
+enablePlugins(JavaServerAppPackaging)
+enablePlugins(UniversalPlugin)
 enablePlugins(DockerPlugin)
 enablePlugins(AshScriptPlugin)
 
 lazy val akkaHttpVersion = "10.0.10"
 lazy val akkaVersion    = "2.5.4"
 lazy val json4sVersion    = "3.5.3"
+
+lazy val baseDockerImageName = "ytDl:alpine_jdk_ytDl"
+
+lazy val buildBaseImage = taskKey[Unit]("Build base docker image")
+buildBaseImage := {
+  println("Building base image")
+  s"docker image build -t $baseDockerImageName youtube_dl/" !
+}
+
+//Use this task to build the image
+lazy val publishDocker = taskKey[Unit]("Publish the image of youtube_converter_api")
+publishDocker := {
+  buildBaseImage.value
+  (publishLocal in Docker).value
+}
 
 lazy val root = (project in file(".")).
   settings(
@@ -40,7 +56,7 @@ lazy val root = (project in file(".")).
     )
   )
 
-dockerBaseImage := "c79255aa3aed"
+dockerBaseImage := baseDockerImageName
 
 lazy val scalariformPref = Def.setting {
   ScalariformKeys.preferences.value
