@@ -20,7 +20,7 @@ object YoutubeService extends LazyLogging {
 
   //Regex matchers
   final private val downloadPercentaceRegex = "(\\d+\\.\\d)\\%".r
-  
+
   def downloadVideo(videoUrl: String): Future[String] = {
     var fileName = ""
 
@@ -28,7 +28,7 @@ object YoutubeService extends LazyLogging {
       downloadPercentaceRegex.findFirstIn(out) map { matchedDownloadPerc =>
         logger.info(s"Download $matchedDownloadPerc")
       }
-  
+
       fileNameRegex.findFirstIn(out).map { matchedFilename =>
         fileName = matchedFilename
       }
