@@ -29,19 +29,15 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
 
 trait EnableCORSDirectives extends RespondWithDirectives {
 
-  private val allowedCorsVerbs = List(
-    CONNECT, DELETE, GET, HEAD, OPTIONS,
-    PATCH, POST, PUT, TRACE
-  )
-
-  private val allowedCorsHeaders = List(
-    "X-Requested-With", "content-type", "origin", "accept"
-  )
+//  private val allowedCorsVerbs = List(
+//    CONNECT, DELETE, GET, HEAD, OPTIONS,
+//    PATCH, POST, PUT, TRACE
+//  )
+//
+//  private val allowedCorsHeaders = List(
+//    "X-Requested-With", "content-type", "origin", "accept"
+//  )
 
   lazy val enableCORS =
-    respondWithHeader(`Access-Control-Allow-Origin`.`*`) &
-      respondWithHeader(`Access-Control-Allow-Methods`(allowedCorsVerbs)) &
-      respondWithHeader(`Access-Control-Allow-Headers`(allowedCorsHeaders)) &
-      respondWithHeader(`Access-Control-Allow-Credentials`(true))
-
+    respondWithHeader(`Access-Control-Allow-Origin`.`*`)
 }
