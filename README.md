@@ -43,3 +43,9 @@ docker run --rm -p8080:8080 youtube_converter_api:0.0.1
 to start the API.
 
 
+To see the website, go to the `client/` folder in the root of the project and do:
+```
+python -m SimpleHTTPServer 8000
+```
+
+You will see the page in the browser at `localhost:8000`.

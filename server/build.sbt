@@ -28,7 +28,7 @@ publishDocker := {
 lazy val root = (project in file(".")).
   settings(
     inThisBuild(List(
-      organization    := "yt_converter",
+      organization    := "swaggetty-yolognese",
       scalaVersion    := "2.12.3",
       version         := "0.0.1",
       mainClass in Compile := Some("example.AppEntryPoint"),
