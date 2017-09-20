@@ -18,18 +18,19 @@ object YoutubeService extends LazyLogging {
 
   final private val youtubeDlOptions = s"-x --audio-format mp3 -o $downloadFolder/$filenamePrefix-%(id)s.mp3"
 
+  //Regex matchers
+  final private val downloadPercentaceRegex = "(\\d+\\.\\d)\\%".r
+  
   def downloadVideo(videoUrl: String): Future[String] = {
     var fileName = ""
 
     val downloadF = s"youtube-dl $youtubeDlOptions $videoUrl".exec(StIO(stdOut = { out =>
-      "(\\d+\\.\\d)\\%".r.findFirstIn(out) map { matched =>
-        logger.info(s"Download $matched")
+      downloadPercentaceRegex.findFirstIn(out) map { matchedDownloadPerc =>
+        logger.info(s"Download $matchedDownloadPerc")
       }
-
-      fileNameRegex.findFirstIn(out) match {
-        case Some(matching) =>
-          fileName = matching
-        case None =>
+  
+      fileNameRegex.findFirstIn(out).map { matchedFilename =>
+        fileName = matchedFilename
       }
 
     }))
