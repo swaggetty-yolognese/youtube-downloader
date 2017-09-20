@@ -22,9 +22,7 @@ object YoutubeService extends LazyLogging {
     var fileName = ""
 
     val downloadF = s"youtube-dl $youtubeDlOptions $videoUrl".exec(StIO(stdOut = { out =>
-      logger.debug(out)
-
-      "(\\d\\.\\d || \\d\\d\\.\\d || \\d\\d\\d\\.\\d)%".r.findFirstIn(out) map { matched =>
+      "(\\d+\\.\\d)\\%".r.findFirstIn(out) map { matched =>
         logger.info(s"Download $matched")
       }
 
