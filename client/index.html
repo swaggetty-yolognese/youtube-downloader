@@ -73,13 +73,17 @@
 
 <script>
   var YoutubeFetcher = function() {
-    this.formID = 'youtube-fetcher';
+    this.inputID = 'youtube-address';
+  };
+
+  YoutubeFetcher.prototype.inputValue = function() {
+    return document.getElementById(this.inputID).value
   };
 
   YoutubeFetcher.prototype.getUUID = function() {
-    return fetch("http://localhost:8080/yt/video", {
+    return fetch("http://127.0.0.1:8080/yt/video", {
       method: "POST",
-      videoUrl: document.getElementById('youtube-address').value
+      videoUrl: this.inputValue()
     });
   };
 
