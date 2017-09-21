@@ -83,10 +83,12 @@
   YoutubeFetcher.prototype.getUUID = function() {
     var request = {
       method: "POST",
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: { videoUrl: this.inputValue() }
     };
-
-    console.log('request', request);
 
     return fetch("http://localhost:8080/yt/video", request);
   };
