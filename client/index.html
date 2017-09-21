@@ -81,10 +81,14 @@
   };
 
   YoutubeFetcher.prototype.getUUID = function() {
-    return fetch("http://localhost:8080/yt/video", {
+    var request = {
       method: "POST",
-      videoUrl: this.inputValue()
-    });
+      body: { videoUrl: this.inputValue() }
+    };
+
+    console.log('request', request);
+
+    return fetch("http://localhost:8080/yt/video", request);
   };
 
   $(document).ready(function () {
@@ -95,7 +99,7 @@
 
     $('#youtube-fetcher').on('submit', function(e) {
       e.preventDefault();
-      
+
       youtubeFetcher.getUUID()
         .then(
           function success(response) {
