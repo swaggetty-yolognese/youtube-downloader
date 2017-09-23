@@ -10,7 +10,9 @@ import yt.YoutubeService
 
 trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
 
-  lazy val youtubeRoute = enableCORS {
+  lazy val youtubeRoute = doFuckingPreflight ~ ytRoute
+
+  lazy val ytRoute = enableCORS {
     post {
       path("yt" / "video") {
         entity(as[YoutubeVideoUrl]) { videoUrl =>
@@ -25,19 +27,32 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
       }
     }
   }
+
+  private def doFuckingPreflight = enableCORS {
+    options {
+      pathPrefix("yt" / ("video" | "download")) {
+        pathEnd {
+          complete("YOU SUCK")
+        }
+      }
+    }
+  }
 }
 
 trait EnableCORSDirectives extends RespondWithDirectives {
 
-//  private val allowedCorsVerbs = List(
-//    CONNECT, DELETE, GET, HEAD, OPTIONS,
-//    PATCH, POST, PUT, TRACE
-//  )
-//
-//  private val allowedCorsHeaders = List(
-//    "X-Requested-With", "content-type", "origin", "accept"
-//  )
+  private val allowedCorsVerbs = List(
+    CONNECT, DELETE, GET, HEAD, OPTIONS,
+    PATCH, POST, PUT, TRACE
+  )
+
+  private val allowedCorsHeaders = List(
+    "X-Requested-With", "content-type", "origin", "accept"
+  )
 
   lazy val enableCORS =
-    respondWithHeader(`Access-Control-Allow-Origin`.`*`)
+    respondWithHeader(`Access-Control-Allow-Origin`.`*`) &
+      respondWithHeader(`Access-Control-Allow-Methods`(allowedCorsVerbs)) &
+      respondWithHeader(`Access-Control-Allow-Headers`(allowedCorsHeaders)) &
+      respondWithHeader(`Access-Control-Allow-Credentials`(true))
 }
