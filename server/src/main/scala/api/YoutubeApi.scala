@@ -4,8 +4,11 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RespondWithDirectives
 import akka.http.scaladsl.model.headers.{ `Access-Control-Allow-Credentials`, `Access-Control-Allow-Headers`, `Access-Control-Allow-Methods`, `Access-Control-Allow-Origin` }
 import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.server._
+import akka.http.scaladsl.model.StatusCodes._
 import example.domain.YoutubeVideoUrl
-import util.JsonSupport
+import _root_.util.JsonSupport
 import yt.YoutubeService
 
 trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
@@ -13,10 +16,10 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
   lazy val youtubeRoute = doFuckingPreflight ~ ytRoute
 
   lazy val ytRoute = enableCORS {
-    post {
+    get {
       path("yt" / "video") {
-        entity(as[YoutubeVideoUrl]) { videoUrl =>
-          complete(YoutubeService.downloadVideo(videoUrl.videoUrl))
+        parameter('url) { videoUrl =>
+          complete(YoutubeService.downloadVideo(videoUrl))
         }
       }
     } ~ get {
@@ -37,13 +40,28 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
       }
     }
   }
+
+  implicit def myRejectionHandler =
+    RejectionHandler.newBuilder()
+      .handle {
+        case MissingCookieRejection(cookieName) =>
+          enableCORS { complete(HttpResponse(BadRequest, entity = "No cookies, no service!!!")) }
+        case AuthorizationFailedRejection =>
+          enableCORS { complete((Forbidden, "You're out of your depth!")) }
+        case AuthorizationFailedRejection =>
+          enableCORS { complete((Forbidden, "You're out of your depth!")) }
+        case ValidationRejection(msg, _) =>
+          enableCORS { complete((InternalServerError, "That wasn't valid! "+msg)) }
+      }
+      .handleNotFound { enableCORS { complete((NotFound, "Not here!")) } }
+      .result()
+
 }
 
 trait EnableCORSDirectives extends RespondWithDirectives {
 
   private val allowedCorsVerbs = List(
-    CONNECT, DELETE, GET, HEAD, OPTIONS,
-    PATCH, POST, PUT, TRACE
+    GET, OPTIONS
   )
 
   private val allowedCorsHeaders = List(
@@ -56,3 +74,4 @@ trait EnableCORSDirectives extends RespondWithDirectives {
       respondWithHeader(`Access-Control-Allow-Headers`(allowedCorsHeaders)) &
       respondWithHeader(`Access-Control-Allow-Credentials`(true))
 }
+
