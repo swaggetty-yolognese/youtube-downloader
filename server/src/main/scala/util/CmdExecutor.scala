@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 object CmdHelper extends LazyLogging {
 
   case class StIO(
-    stdOut: (String) => Unit = logger.info(_),
+    stdOut: (String) => Unit = logger.debug(_),
     stdErr: (String) => Unit = logger.error(_)
   )
 
