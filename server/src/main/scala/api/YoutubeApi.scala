@@ -4,18 +4,14 @@ import java.nio.file.Paths
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.RespondWithDirectives
-import akka.http.scaladsl.model.headers._
+import scala.collection.immutable.Seq
 import akka.http.scaladsl.model.HttpMethods._
 import _root_.util.JsonSupport
 import akka.http.scaladsl.model.HttpHeader.ParsingResult
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
-import akka.stream.IOResult
-import akka.stream.scaladsl.{ FileIO, Source }
-import akka.util.ByteString
+import akka.stream.scaladsl.{ FileIO }
 import yt.YoutubeService
-import scala.collection.immutable
-import scala.concurrent.Future
 
 trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
 
@@ -23,21 +19,21 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
 
   lazy val ytRoute = enableCORS {
     get {
-      path("yt" / "video") {
-        parameter('url) { videoUrl =>
-          complete(YoutubeService.downloadVideo(videoUrl))
-        }
-      }
-    } ~ get {
-      pathPrefix("yt" / "download" / Segment) { videoUuid =>
-        pathEnd {
+      pathPrefix("yt" / "video") {
+        path("convert") {
+          parameter('url) { videoUrl =>
+            complete(YoutubeService.downloadVideo(videoUrl))
+          }
+        } ~ path("download" / Segment) { videoUuid =>
           serveFile(videoUuid)
         }
       }
     }
   }
+  
 
   def serveFile(videoUuid: String) = complete {
+
     YoutubeService.getFilePath(videoUuid) match {
       case None =>
         HttpResponse(StatusCodes.NotFound, entity = HttpEntity.Empty)
@@ -50,7 +46,7 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
         )
         HttpResponse(
           StatusCodes.OK,
-          headers = scala.collection.immutable.Seq(contentDispositionHeader),
+          headers = Seq(contentDispositionHeader),
           entity = HttpEntity(contentType, stream)
         )
     }
@@ -67,7 +63,7 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
     options {
       pathPrefix("yt" / ("video" | "download")) {
         pathEnd {
-          complete("YOU SUCK")
+          complete(HttpEntity.Empty)
         }
       }
     }
