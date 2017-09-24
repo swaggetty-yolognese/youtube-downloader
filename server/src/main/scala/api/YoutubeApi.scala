@@ -44,18 +44,24 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
       case Some(filePath) =>
         val stream = FileIO.fromPath(Paths.get(filePath))
         val contentType = ContentType(MediaTypes.`audio/mpeg`)
-        val ParsingResult.Ok(contentDispositionHeader,_) = HttpHeader.parse(
+        val ParsingResult.Ok(contentDispositionHeader, _) = HttpHeader.parse(
           "Content-Disposition",
-          "attachment; filename=track.mp3"
+          s"attachment; filename=${getFileName(filePath)}"
         )
         HttpResponse(
           StatusCodes.OK,
-          headers = scala.collection.immutable.Seq(contentDispositionHeader ),
+          headers = scala.collection.immutable.Seq(contentDispositionHeader),
           entity = HttpEntity(contentType, stream)
         )
     }
-
   }
+
+  private def getFileName(filePath: String) =
+    filePath
+      .reverse
+      .takeWhile(_ != '/')
+      .reverse
+      .mkString
 
   private def doFuckingPreflight = enableCORS {
     options {
