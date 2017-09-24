@@ -1,15 +1,33 @@
 package yt
 
 import java.io.{ File, FileNotFoundException }
+import java.nio.file.{ Files, Paths }
 import java.util.UUID
+
 import com.typesafe.scalalogging.LazyLogging
-import scala.concurrent.ExecutionContext.Implicits.global
+import example.AppEntryPoint.system
 import util.CmdHelper._
+import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 import scala.concurrent.Future
 
 object YoutubeService extends LazyLogging {
 
-  val urlsToFile = scala.collection.mutable.Map[String, String]()
+  implicit val dispatcher = system.dispatcher
+
+  system.scheduler.schedule(initialDelay = 30 seconds, interval = 5 minutes) {
+    val storedFilePaths = Files.list(Paths.get(downloadFolder)).iterator.asScala.map(_.toAbsolutePath.toString).toSet
+    val nonServedFilePaths = uuidToFullPath.values.toSet
+
+    val toBeRemovedPaths = storedFilePaths -- nonServedFilePaths
+    logger.info(s"Deleting ${toBeRemovedPaths.size} mp3 files")
+    toBeRemovedPaths foreach { path =>
+      new File(path).delete
+    }
+
+  }
+
+  val uuidToFullPath = scala.collection.mutable.Map[String, String]()
   lazy val config = com.typesafe.config.ConfigFactory.load()
 
   final private val downloadFolder = config.getString("application.downloadFolder")
@@ -48,7 +66,7 @@ object YoutubeService extends LazyLogging {
       val uuid = UUID.randomUUID().toString
 
       logger.debug(s"storing ($uuid, ${outFile.getAbsolutePath}")
-      urlsToFile += uuid -> outFile.getAbsolutePath
+      uuidToFullPath += uuid -> outFile.getAbsolutePath
 
       uuid
 
@@ -57,7 +75,7 @@ object YoutubeService extends LazyLogging {
   }
 
   def getFilePath(uuid: String): Option[String] = {
-    urlsToFile.get(uuid)
+    uuidToFullPath.remove(uuid)
   }
 
 }

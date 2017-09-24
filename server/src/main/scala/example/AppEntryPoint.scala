@@ -7,7 +7,6 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import api.YoutubeApi
 import com.typesafe.scalalogging.LazyLogging
-
 import scala.concurrent.{ ExecutionContext, Future }
 
 object AppEntryPoint extends App with YoutubeApi with LazyLogging {
