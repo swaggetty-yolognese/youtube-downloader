@@ -7,7 +7,6 @@ import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.model.StatusCodes._
-import example.domain.YoutubeVideoUrl
 import _root_.util.JsonSupport
 import yt.YoutubeService
 
@@ -40,21 +39,7 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
       }
     }
   }
-
-  implicit def myRejectionHandler =
-    RejectionHandler.newBuilder()
-      .handle {
-        case MissingCookieRejection(cookieName) =>
-          enableCORS { complete(HttpResponse(BadRequest, entity = "No cookies, no service!!!")) }
-        case AuthorizationFailedRejection =>
-          enableCORS { complete((Forbidden, "You're out of your depth!")) }
-        case AuthorizationFailedRejection =>
-          enableCORS { complete((Forbidden, "You're out of your depth!")) }
-        case ValidationRejection(msg, _) =>
-          enableCORS { complete((InternalServerError, "That wasn't valid! "+msg)) }
-      }
-      .handleNotFound { enableCORS { complete((NotFound, "Not here!")) } }
-      .result()
+  
 
 }
 
