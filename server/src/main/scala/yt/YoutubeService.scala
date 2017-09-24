@@ -56,15 +56,8 @@ object YoutubeService extends LazyLogging {
 
   }
 
-  def getFilePath(uuid: String): File = {
-
-    urlsToFile.get(uuid).map(new File(_)) match {
-      case Some(file) if(file.exists()) => file
-      case _ =>
-        logger.error(s"File for $uuid does not exist!")
-        throw new IllegalStateException(s"File for $uuid does not exist")
-    }
-    
+  def getFilePath(uuid: String): Option[String] = {
+    urlsToFile.get(uuid)
   }
 
 }
