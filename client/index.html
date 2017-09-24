@@ -86,7 +86,7 @@
   };
 
   YoutubeFetcher.prototype.getUUID = function() {
-    var downloadRequestUrl = "http://127.0.0.1:8080/yt/video?url="+encodeURI(this.inputValue());
+    var downloadRequestUrl = "http://127.0.0.1:8080/yt/video/convert?url="+encodeURI(this.inputValue());
 
     return fetch(downloadRequestUrl, { method: "GET"});
   };
