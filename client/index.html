@@ -7,6 +7,11 @@
 
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+  <style>
+    .hidden { display: none }
+    .error-message { color: red; }
+  </style>
 </head>
 <body>
 
@@ -48,16 +53,26 @@
             Youtube Address
           </label>
 
-          <input type="text" class="form-control" id="youtube-address" aria-describedby="youtubeAddress" placeholder="Enter the Youtube Address you want to download as MP3">
+          <input
+            type="text"
+            class="form-control"
+            id="youtube-address"
+            aria-describedby="youtubeAddress"
+            placeholder="Enter the Youtube Address you want to download as MP3">
+
+          <span class="error-message hidden"></span>
         </div>
 
         <button type="submit" class="btn btn-primary get-uuid">
           Search
         </button>
+
+
       </form>
 
-      <div>
-        <a id="download-link" href="#"> Download </a>
+      <div class="download-link-container hidden">
+        <hr>
+        <a id='download-link' class="btn btn-success btn-lg btn-block" href="#"> Download </a>
       </div>
 
     </div>
@@ -77,6 +92,30 @@
 
 
 <script>
+  function activateSearchButton() {
+    return $('.get-uuid').removeClass('disabled').attr('disabled', false).text('Search');
+  }
+
+  function deactivateSearchButton() {
+    return $('.get-uuid').addClass('disabled').attr('disabled', true).text('Loading...');
+  }
+
+  function showSearchButton() {
+    activateSearchButton().removeClass('hidden');
+  }
+
+  function hideSearchButton() {
+    activateSearchButton().addClass('hidden');
+  }
+
+  function showErrorMessage(error) {
+    $('.error-message').removeClass('hidden').text(error);
+  }
+
+  function hideErrorMessage() {
+    $('.error-message').addClass('hidden').text('');
+  }
+
   var YoutubeFetcher = function() {
     this.inputID = 'youtube-address';
   };
@@ -99,27 +138,28 @@
 
     $('#youtube-fetcher').on('submit', function(e) {
       e.preventDefault();
+        deactivateSearchButton();
+        hideErrorMessage();
 
-      youtubeFetcher.getUUID()
-        .then(
-          function onResponse(response) {
-            return response.text();
-          }
-        )
-        .then(
-          function onResult(data) {
-            var result = data.substring(1, data.length -1);
-            var link = "http://127.0.0.1:8080/yt/download/"+result;
+        youtubeFetcher.getUUID()
+          .then(function res(response) { return response.text() })
+          .then(
+              function onResult(data) {
+                var result = data.substring(1, data.length -1);
+                var link = "http://127.0.0.1:8080/yt/download/" + result;
 
-            $('#download-link').attr('href',link);
-                           
-            }
-         )
-        .then(
-          function onError(err) {
-            console.log("error"+err);
-          }
+                hideSearchButton();
+                $('.download-link-container').removeClass('hidden');
+                $('#download-link').attr('href', link);
+
+              },
+              function onError(err) {
+                activateSearchButton();
+                showErrorMessage(err);
+                console.log("error", err);
+              }
           )
+
     });
   });
 </script>
