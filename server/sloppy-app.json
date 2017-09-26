@@ -1,0 +1,20 @@
+{
+	"project": "swaggetti-v1",
+	"services": [{
+		"id": "mp3-downloader",
+		"apps": [{
+			"id": "api",
+			"domain": {
+					"uri": "swaggetti-mp3.sloppy.zone"
+			},
+			"port_mappings": [
+					{
+							"container_port": 8080
+					}
+			],
+			"mem": 512,
+			"image": "ott0disk/swaggetti-mp3:0.0.1",
+			"instances": 1
+      }]
+		}]
+	}
