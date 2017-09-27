@@ -30,7 +30,7 @@ lazy val root = (project in file(".")).
     inThisBuild(List(
       organization    := "swaggetty-yolognese",
       scalaVersion    := "2.12.3",
-      version         := "0.0.1",
+      version         := "0.0.3",
       mainClass in Compile := Some("example.AppEntryPoint"),
       ScalariformKeys.preferences := scalariformPref.value
     )),
