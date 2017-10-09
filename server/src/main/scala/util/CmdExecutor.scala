@@ -1,24 +1,33 @@
 package util
 
 import java.io.{ BufferedReader, InputStreamReader }
-
 import com.typesafe.scalalogging.LazyLogging
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import example.AppEntryPoint.system
+import yt.YoutubeService.YoutubeDlInvocation
 
 object CmdHelper extends LazyLogging {
+
+  implicit val dispatcher = system.dispatcher
 
   case class StIO(
     stdOut: (String) => Unit = logger.debug(_),
     stdErr: (String) => Unit = logger.error(_)
   )
 
-  implicit class CmdExecutor(cmd: String) {
+  implicit class CmdExecutor(cmd: YoutubeDlInvocation) {
 
     def exec(onStdIO: StIO = StIO()): Future[Unit] = Future {
-      logger.info(s"Executing $cmd")
-      val proc = Runtime.getRuntime.exec(cmd)
+      logger.info(s"Executing $cmd ")
+      val pb = new ProcessBuilder(
+        cmd.executable,
+        cmd.configLocationOption,
+        cmd.configLocationFile,
+        cmd.videoUrl
+      ) //.directory(new File("/opt/docker/downloads"))
+
+      val proc = pb.start() //Runtime.getRuntime.exec(cmd)
 
       val stdOutReader = new BufferedReader(
         new InputStreamReader(proc.getInputStream)

@@ -1,9 +1,9 @@
 package yt
 
-import java.io.{ File, FileNotFoundException }
+import java.io.{ File, FileNotFoundException, IOException }
 import java.nio.file.{ Files, Paths }
+import java.nio.file.StandardOpenOption._
 import java.util.UUID
-
 import com.typesafe.scalalogging.LazyLogging
 import example.AppEntryPoint.system
 import util.CmdHelper._
@@ -13,36 +13,43 @@ import scala.concurrent.Future
 
 object YoutubeService extends LazyLogging {
 
+  case class YoutubeDlInvocation(
+    executable: String,
+    configLocationOption: String,
+    configLocationFile: String,
+    videoUrl: String
+  )
+
   implicit val dispatcher = system.dispatcher
 
   system.scheduler.schedule(initialDelay = 30 seconds, interval = 5 minutes) {
-    val storedFilePaths = Files.list(Paths.get(downloadFolder)).iterator.asScala.map(_.toAbsolutePath.toString).toSet
-    val nonServedFilePaths = uuidToFullPath.values.toSet
-
-    val toBeRemovedPaths = storedFilePaths -- nonServedFilePaths
-    logger.info(s"Deleting ${toBeRemovedPaths.size} mp3 files")
-    toBeRemovedPaths foreach { path =>
-      new File(path).delete
-    }
-
+    downloadCleanupRoutine
   }
 
   val uuidToFullPath = scala.collection.mutable.Map[String, String]()
   lazy val config = com.typesafe.config.ConfigFactory.load()
 
-  final private val downloadFolder = config.getString("application.downloadFolder")
+  final private val downloadDirName = config.getString("application.downloadFolder")
+  final private val downloadDir = createDownloadDirIfNotExists(downloadDirName)
   final private val filenamePrefix = config.getString("application.fileNamePrefix")
-  final private val fileNameRegex = s"$downloadFolder\\/$filenamePrefix-[a-zA-z0-9\\w\\-\\_]+.mp3".r //FIXME enforce max size of youtube-id
+  final private val youtubeDlExecutable = "/home/andrea/.local/bin/youtube-dl"
+  final private val confFileAbsPath = writeConfigFile()
 
-  final private val youtubeDlOptions = s"-x --audio-format mp3 -o $downloadFolder/$filenamePrefix-%(id)s.mp3"
-
-  //Regex matchers
+  //Regex matcher
   final private val downloadPercentaceRegex = "(\\d+\\.\\d)\\%".r
+  final private val fileNameRegex = s"$downloadDirName\\/$filenamePrefix-[a-zA-z0-9\\w\\-\\_]+.mp3".r
 
   def downloadVideo(videoUrl: String): Future[String] = {
     var fileName = ""
 
-    val downloadF = s"youtube-dl $youtubeDlOptions $videoUrl".exec(StIO(stdOut = { out =>
+    val ytCmd = YoutubeDlInvocation(
+      executable = youtubeDlExecutable,
+      configLocationOption = "--config-location",
+      configLocationFile = confFileAbsPath,
+      videoUrl = videoUrl
+    )
+
+    val downloadF = ytCmd.exec(StIO(stdOut = { out =>
       downloadPercentaceRegex.findFirstIn(out) map { matchedDownloadPerc =>
         logger.info(s"Download $matchedDownloadPerc")
       }
@@ -76,6 +83,65 @@ object YoutubeService extends LazyLogging {
 
   def getFilePath(uuid: String): Option[String] = {
     uuidToFullPath.remove(uuid)
+  }
+
+  private def createDownloadDirIfNotExists(dirName: String): File = {
+
+    val curDir = new File("")
+    val downDir = new File(curDir.getAbsolutePath + File.separator + dirName)
+
+    val created = downDir.createNewFile
+    val canWrite = downDir.canWrite
+
+    if (!created)
+      logger.warn(s"$dirName dir already exists")
+    else
+      logger.info(s"Creating ${downDir.getAbsolutePath}")
+
+    if (!canWrite)
+      logger.error(s"Can't write in ${downDir.getAbsolutePath}")
+
+    if (!created && !downDir.exists)
+      throw new IOException(s"File does not exist, unable to create: ${downDir.getAbsolutePath}")
+
+    logger.info(s"Download dir: ${downDir.getAbsolutePath}")
+    downDir
+  }
+
+  def writeConfigFile() = {
+    val file = Paths.get("youtube-dl.conf")
+
+    val confFile = Files.write(file, youtubeDlConfigRaw.toCharArray.map(_.toByte), CREATE_NEW, WRITE)
+    val absPath = confFile.toAbsolutePath
+
+    logger.info(s"Written config file into $absPath")
+    logger.info(youtubeDlConfigRaw)
+
+    absPath.toString
+  }
+
+  lazy val youtubeDlConfigRaw =
+    s"""
+      |# Always extract audio
+      |-x
+      |
+      |# Mp3
+      |--audio-format mp3
+      |
+      |# Save all videos under Movies directory in your home directory
+      |-o ${downloadDir.getAbsolutePath}/$filenamePrefix-%(id)s.mp3
+    """.stripMargin
+
+  def downloadCleanupRoutine = {
+    val storedFilePaths = Files.list(Paths.get(downloadDir.getAbsolutePath)).iterator.asScala.map(_.toAbsolutePath.toString).toSet
+    val nonServedFilePaths = uuidToFullPath.values.toSet
+
+    val toBeRemovedPaths = storedFilePaths -- nonServedFilePaths
+    logger.info(s"Deleting ${toBeRemovedPaths.size} mp3 files")
+    toBeRemovedPaths foreach { path =>
+      new File(path).delete
+    }
+
   }
 
 }

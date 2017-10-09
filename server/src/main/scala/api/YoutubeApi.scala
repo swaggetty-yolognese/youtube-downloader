@@ -30,7 +30,6 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
       }
     }
   }
-  
 
   def serveFile(videoUuid: String) = complete {
 

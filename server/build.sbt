@@ -1,4 +1,6 @@
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import com.typesafe.sbt.packager.docker.Cmd
+
 import scalariform.formatter.preferences._
 
 enablePlugins(JavaServerAppPackaging)
@@ -30,7 +32,7 @@ lazy val root = (project in file(".")).
     inThisBuild(List(
       organization    := "swaggetty-yolognese",
       scalaVersion    := "2.12.3",
-      version         := "0.0.3",
+      version         := "0.0.4",
       mainClass in Compile := Some("example.AppEntryPoint"),
       ScalariformKeys.preferences := scalariformPref.value
     )),
@@ -57,6 +59,10 @@ lazy val root = (project in file(".")).
   )
 
 dockerBaseImage := baseDockerImageName
+dockerExposedPorts := Seq(8080)
+dockerCommands := dockerCommands.value ++ Seq(
+  Cmd("RUN", "mkdir /opt/docker/downloads && chown daemon:daemon /opt/docker/downloads")
+)
 
 lazy val scalariformPref = Def.setting {
   ScalariformKeys.preferences.value
