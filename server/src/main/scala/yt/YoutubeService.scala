@@ -84,7 +84,7 @@ object YoutubeService extends LazyLogging {
   }
 
   def getFilePath(uuid: String): Option[String] = {
-    uuidToFullPath.remove(uuid)
+    uuidToFullPath.get(uuid)
   }
 
   private def createDownloadDirIfNotExists(dirName: String): File = {
