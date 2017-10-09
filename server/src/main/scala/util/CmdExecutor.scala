@@ -1,6 +1,6 @@
 package util
 
-import java.io.{ BufferedReader, InputStreamReader }
+import java.io.{ BufferedReader, File, InputStreamReader }
 import com.typesafe.scalalogging.LazyLogging
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -25,7 +25,7 @@ object CmdHelper extends LazyLogging {
         cmd.configLocationOption,
         cmd.configLocationFile,
         cmd.videoUrl
-      ) //.directory(new File("/opt/docker/downloads"))
+      ).directory(new File("/"))
 
       val proc = pb.start() //Runtime.getRuntime.exec(cmd)
 

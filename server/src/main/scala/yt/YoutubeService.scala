@@ -17,7 +17,8 @@ object YoutubeService extends LazyLogging {
     executable: String,
     configLocationOption: String,
     configLocationFile: String,
-    videoUrl: String
+    videoUrl: String,
+    envDir: String
   )
 
   implicit val dispatcher = system.dispatcher
@@ -32,7 +33,7 @@ object YoutubeService extends LazyLogging {
   final private val downloadDirName = config.getString("application.downloadFolder")
   final private val downloadDir = createDownloadDirIfNotExists(downloadDirName)
   final private val filenamePrefix = config.getString("application.fileNamePrefix")
-  final private val youtubeDlExecutable = "/home/andrea/.local/bin/youtube-dl"
+  final private val youtubeDlExecutable = "youtube-dl"
   final private val confFileAbsPath = writeConfigFile()
 
   //Regex matcher
@@ -46,7 +47,8 @@ object YoutubeService extends LazyLogging {
       executable = youtubeDlExecutable,
       configLocationOption = "--config-location",
       configLocationFile = confFileAbsPath,
-      videoUrl = videoUrl
+      videoUrl = videoUrl,
+      envDir = downloadDir.getAbsolutePath
     )
 
     val downloadF = ytCmd.exec(StIO(stdOut = { out =>
@@ -115,8 +117,6 @@ object YoutubeService extends LazyLogging {
     val absPath = confFile.toAbsolutePath
 
     logger.info(s"Written config file into $absPath")
-    logger.info(youtubeDlConfigRaw)
-
     absPath.toString
   }
 
