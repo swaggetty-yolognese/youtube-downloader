@@ -3,7 +3,7 @@ package api
 import java.nio.file.Paths
 
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.directives.{LoggingMagnet, RespondWithDirectives}
+import akka.http.scaladsl.server.directives.{ LoggingMagnet, RespondWithDirectives }
 import scala.compat.java8.OptionConverters._
 import scala.collection.immutable.Seq
 import akka.http.scaladsl.model.HttpMethods._
@@ -77,16 +77,16 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
 }
 
 trait EnableCORSDirectives extends RespondWithDirectives with LazyLogging {
-  
-  def headerLogger:LoggingMagnet[HttpRequest => Unit] = LoggingMagnet { loggingAdapter => request =>
+
+  def headerLogger: LoggingMagnet[HttpRequest => Unit] = LoggingMagnet { loggingAdapter => request =>
     loggingAdapter.debug(s"Headers: ${request._3.toString()}")
     loggingAdapter.debug(s"HTTP Method: ${request._1}")
   }
-  
+
   def logClientIP = extractClientIP map { remoteAddress =>
     logger.info(s"IP :${remoteAddress.getAddress.asScala.map(_.getHostAddress)}")
   }
-  
+
   private val allowedCorsVerbs = List(
     GET, OPTIONS
   )

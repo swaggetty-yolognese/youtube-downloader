@@ -125,6 +125,7 @@ object YoutubeService extends LazyLogging {
     """.stripMargin
 
   private def cleanupRoutine = {
+    //TODO update the map as well
     val toBeRemovedPaths = uuidToFullPath.values.toSeq.filter { fileEntry =>
 
       LocalDateTime.now.isAfter(fileEntry.creationDate.plus(Duration.ofMinutes(fileLifeSpan)))
