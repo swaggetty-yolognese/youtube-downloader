@@ -3,31 +3,21 @@ package yt
 import java.io.{ File, FileNotFoundException, IOException }
 import java.nio.file.{ Files, Paths }
 import java.nio.file.StandardOpenOption._
+import java.time.LocalDateTime
+import java.time.Duration
 import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
 import example.AppEntryPoint.system
 import util.CmdHelper._
-import scala.collection.JavaConverters._
+import yt.domain.{ FileEntry, YoutubeDlInvocation }
 import scala.concurrent.duration._
 import scala.concurrent.Future
 
 object YoutubeService extends LazyLogging {
 
-  case class YoutubeDlInvocation(
-    executable: String,
-    configLocationOption: String,
-    configLocationFile: String,
-    videoUrl: String,
-    envDir: String
-  )
-
   implicit val dispatcher = system.dispatcher
 
-  system.scheduler.schedule(initialDelay = 30 seconds, interval = 5 minutes) {
-    downloadCleanupRoutine
-  }
-
-  val uuidToFullPath = scala.collection.mutable.Map[String, String]()
+  val uuidToFullPath = scala.collection.mutable.Map[String, FileEntry]()
   lazy val config = com.typesafe.config.ConfigFactory.load()
 
   final private val downloadDirName = config.getString("application.downloadFolder")
@@ -35,12 +25,14 @@ object YoutubeService extends LazyLogging {
   final private val filenamePrefix = config.getString("application.fileNamePrefix")
   final private val youtubeDlExecutable = "youtube-dl"
   final private val confFileAbsPath = writeConfigFile()
+  final private val cleanupInterval = config.getInt("application.runCleanUpIntervalMinutes")
+  final private val fileLifeSpan = config.getInt("application.removeFileOlderThanMinutes")
 
   //Regex matcher
   final private val downloadPercentaceRegex = "(\\d+\\.\\d)\\%".r
   final private val fileNameRegex = s"$downloadDirName\\/$filenamePrefix-[a-zA-z0-9\\w\\-\\_]+.mp3".r
 
-  def downloadVideo(videoUrl: String): Future[String] = {
+  def downloadVideo(videoUrl: String): Future[String] = Future {
     var fileName = ""
 
     val ytCmd = YoutubeDlInvocation(
@@ -75,16 +67,16 @@ object YoutubeService extends LazyLogging {
       val uuid = UUID.randomUUID().toString
 
       logger.debug(s"storing ($uuid, ${outFile.getAbsolutePath}")
-      uuidToFullPath += uuid -> outFile.getAbsolutePath
+      uuidToFullPath += uuid -> FileEntry(outFile.getAbsolutePath, LocalDateTime.now)
 
       uuid
 
     }
 
-  }
+  } flatten
 
   def getFilePath(uuid: String): Option[String] = {
-    uuidToFullPath.get(uuid)
+    uuidToFullPath.get(uuid).map(_.absPath)
   }
 
   private def createDownloadDirIfNotExists(dirName: String): File = {
@@ -110,7 +102,7 @@ object YoutubeService extends LazyLogging {
     downDir
   }
 
-  def writeConfigFile() = {
+  private def writeConfigFile() = {
     val file = Paths.get("youtube-dl.conf")
 
     val confFile = Files.write(file, youtubeDlConfigRaw.toCharArray.map(_.toByte), CREATE_NEW, WRITE)
@@ -132,16 +124,23 @@ object YoutubeService extends LazyLogging {
       |-o ${downloadDir.getAbsolutePath}/$filenamePrefix-%(id)s.mp3
     """.stripMargin
 
-  def downloadCleanupRoutine = {
-    val storedFilePaths = Files.list(Paths.get(downloadDir.getAbsolutePath)).iterator.asScala.map(_.toAbsolutePath.toString).toSet
-    val nonServedFilePaths = uuidToFullPath.values.toSet
+  private def cleanupRoutine = {
+    val toBeRemovedPaths = uuidToFullPath.values.toSeq.filter { fileEntry =>
 
-    val toBeRemovedPaths = storedFilePaths -- nonServedFilePaths
+      LocalDateTime.now.isAfter(fileEntry.creationDate.plus(Duration.ofMinutes(fileLifeSpan)))
+
+    } map (_.absPath)
+
     logger.info(s"Deleting ${toBeRemovedPaths.size} mp3 files")
+    
     toBeRemovedPaths foreach { path =>
       new File(path).delete
     }
 
+  }
+
+  system.scheduler.schedule(initialDelay = 30 seconds, interval = cleanupInterval minutes) {
+    cleanupRoutine
   }
 
 }

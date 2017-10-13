@@ -21,7 +21,8 @@ buildBaseImage := {
 }
 
 //Use this task to build the image
-lazy val publishDocker = taskKey[Unit]("Publish the image of youtube_converter_api")
+lazy val publishDocker = taskKey[Unit]("Publish the image of youtube_converte" +
+  "r_api")
 publishDocker := {
   buildBaseImage.value
   (publishLocal in Docker).value
@@ -32,7 +33,7 @@ lazy val root = (project in file(".")).
     inThisBuild(List(
       organization    := "swaggetty-yolognese",
       scalaVersion    := "2.12.3",
-      version         := "0.0.5",
+      version         := "0.0.6",
       mainClass in Compile := Some("example.AppEntryPoint"),
       ScalariformKeys.preferences := scalariformPref.value
     )),

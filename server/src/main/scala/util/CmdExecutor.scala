@@ -1,11 +1,13 @@
 package util
 
 import java.io.{ BufferedReader, File, InputStreamReader }
+
 import com.typesafe.scalalogging.LazyLogging
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import example.AppEntryPoint.system
-import yt.YoutubeService.YoutubeDlInvocation
+import yt.domain.YoutubeDlInvocation
 
 object CmdHelper extends LazyLogging {
 
