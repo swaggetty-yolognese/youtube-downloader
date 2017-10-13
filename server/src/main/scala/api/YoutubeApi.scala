@@ -4,6 +4,7 @@ import java.nio.file.Paths
 
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.{ LoggingMagnet, RespondWithDirectives }
+
 import scala.compat.java8.OptionConverters._
 import scala.collection.immutable.Seq
 import akka.http.scaladsl.model.HttpMethods._
@@ -17,7 +18,7 @@ import yt.YoutubeService
 
 trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
 
-  lazy val youtubeRoute = logClientIP {
+  lazy val youtubeRoute = logClientInfo {
     enableCORS {
       doFuckingPreflight ~ ytRoute
     }
@@ -83,8 +84,13 @@ trait EnableCORSDirectives extends RespondWithDirectives with LazyLogging {
     loggingAdapter.debug(s"HTTP Method: ${request._1}")
   }
 
-  def logClientIP = extractClientIP map { remoteAddress =>
-    logger.info(s"IP :${remoteAddress.getAddress.asScala.map(_.getHostAddress)}")
+  def logClientInfo = extractClientIP map { remoteAddress =>
+    val ip = remoteAddress.getAddress.asScala.map(_.getHostAddress).getOrElse("")
+    logger.info(s"IP: $ip ")
+  }
+
+  private def extractUserAgent = extract { context =>
+    context.request.headers.find(_.name == "User-Agent").map(_.value)
   }
 
   private val allowedCorsVerbs = List(
