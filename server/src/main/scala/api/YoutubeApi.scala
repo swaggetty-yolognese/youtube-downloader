@@ -3,21 +3,27 @@ package api
 import java.nio.file.Paths
 
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.directives.RespondWithDirectives
+import akka.http.scaladsl.server.directives.{LoggingMagnet, RespondWithDirectives}
+import scala.compat.java8.OptionConverters._
 import scala.collection.immutable.Seq
 import akka.http.scaladsl.model.HttpMethods._
 import _root_.util.JsonSupport
 import akka.http.scaladsl.model.HttpHeader.ParsingResult
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
-import akka.stream.scaladsl.{ FileIO }
+import akka.stream.scaladsl.FileIO
+import com.typesafe.scalalogging.LazyLogging
 import yt.YoutubeService
 
 trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
 
-  lazy val youtubeRoute = doFuckingPreflight ~ ytRoute
+  lazy val youtubeRoute = logClientIP {
+    enableCORS {
+      doFuckingPreflight ~ ytRoute
+    }
+  }
 
-  lazy val ytRoute = enableCORS {
+  lazy val ytRoute = {
     get {
       pathPrefix("yt" / "video") {
         path("convert") {
@@ -31,7 +37,7 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
     }
   }
 
-  def serveFile(videoUuid: String) = complete {
+  private def serveFile(videoUuid: String) = complete {
 
     YoutubeService.getFilePath(videoUuid) match {
       case None =>
@@ -58,7 +64,7 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
       .reverse
       .mkString
 
-  private def doFuckingPreflight = enableCORS {
+  private def doFuckingPreflight = {
     options {
       pathPrefix("yt" / ("video" | "download")) {
         pathEnd {
@@ -70,8 +76,17 @@ trait YoutubeApi extends JsonSupport with EnableCORSDirectives {
 
 }
 
-trait EnableCORSDirectives extends RespondWithDirectives {
-
+trait EnableCORSDirectives extends RespondWithDirectives with LazyLogging {
+  
+  def headerLogger:LoggingMagnet[HttpRequest => Unit] = LoggingMagnet { loggingAdapter => request =>
+    loggingAdapter.debug(s"Headers: ${request._3.toString()}")
+    loggingAdapter.debug(s"HTTP Method: ${request._1}")
+  }
+  
+  def logClientIP = extractClientIP map { remoteAddress =>
+    logger.info(s"IP :${remoteAddress.getAddress.asScala.map(_.getHostAddress)}")
+  }
+  
   private val allowedCorsVerbs = List(
     GET, OPTIONS
   )

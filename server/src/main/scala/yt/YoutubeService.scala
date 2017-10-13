@@ -132,7 +132,7 @@ object YoutubeService extends LazyLogging {
     } map (_.absPath)
 
     logger.info(s"Deleting ${toBeRemovedPaths.size} mp3 files")
-    
+
     toBeRemovedPaths foreach { path =>
       new File(path).delete
     }
