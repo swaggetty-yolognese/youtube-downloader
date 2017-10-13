@@ -4,3 +4,4 @@ target/
 *.mp3
 *.mkv
 *.mp4
+youtube-dl.conf

@@ -21,7 +21,7 @@ buildBaseImage := {
 }
 
 //Use this task to build the image
-lazy val publishDocker = taskKey[Unit]("Publish the image of youtube_converte" +
+lazy val publishDocker = taskKey[Unit]("Publish the image of youtube_converter" +
   "r_api")
 publishDocker := {
   buildBaseImage.value
