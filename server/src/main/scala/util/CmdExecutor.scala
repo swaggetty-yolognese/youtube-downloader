@@ -29,7 +29,7 @@ object CmdHelper extends LazyLogging {
         cmd.videoUrl
       ).directory(new File("/"))
 
-      val proc = pb.start() //Runtime.getRuntime.exec(cmd)
+      val proc = pb.start()
 
       val stdOutReader = new BufferedReader(
         new InputStreamReader(proc.getInputStream)

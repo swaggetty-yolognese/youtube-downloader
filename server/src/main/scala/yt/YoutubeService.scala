@@ -45,7 +45,7 @@ object YoutubeService extends LazyLogging {
 
     val downloadF = ytCmd.exec(StIO(stdOut = { out =>
       downloadPercentaceRegex.findFirstIn(out) map { matchedDownloadPerc =>
-        logger.info(s"Download $matchedDownloadPerc")
+        logger.debug(s"Download $matchedDownloadPerc")
       }
 
       fileNameRegex.findFirstIn(out).map { matchedFilename =>
@@ -55,6 +55,8 @@ object YoutubeService extends LazyLogging {
     }))
 
     downloadF.map { _ =>
+      logger.info(s"Downloaded $videoUrl")
+      
 
       if (fileName == "")
         throw new IllegalArgumentException("Filename not found")
@@ -112,33 +114,42 @@ object YoutubeService extends LazyLogging {
     absPath.toString
   }
 
-  lazy val youtubeDlConfigRaw =
-    s"""
-      |# Always extract audio
-      |-x
-      |
-      |# Mp3
-      |--audio-format mp3
-      |
-      |# Save all videos under Movies directory in your home directory
-      |-o ${downloadDir.getAbsolutePath}/$filenamePrefix-%(id)s.mp3
-    """.stripMargin
+  private def shouldRemoveFileEntry(fileEntry: FileEntry) = {
+    LocalDateTime.now.isAfter(fileEntry.creationDate.plus(Duration.ofMinutes(fileLifeSpan)))
+  }
 
   private def cleanupRoutine = {
-    //TODO update the map as well
-    val toBeRemovedPaths = uuidToFullPath.values.toSeq.filter { fileEntry =>
 
-      LocalDateTime.now.isAfter(fileEntry.creationDate.plus(Duration.ofMinutes(fileLifeSpan)))
+    val filesToBeRemoved = uuidToFullPath.values.toSeq.filter(shouldRemoveFileEntry)
+    val numberOfFilesToBeRemoved = filesToBeRemoved.size
 
-    } map (_.absPath)
+    if (numberOfFilesToBeRemoved > 0) {
 
-    logger.info(s"Deleting ${toBeRemovedPaths.size} mp3 files")
+      uuidToFullPath.retain { (_, fileEntry) =>
+        filesToBeRemoved.contains(fileEntry.absPath)
+      }
 
-    toBeRemovedPaths foreach { path =>
-      new File(path).delete
+      logger.info(s"Deleting $numberOfFilesToBeRemoved mp3 files")
+
+      filesToBeRemoved foreach { fileEntry =>
+        new File(fileEntry.absPath).delete
+      }
+
     }
 
   }
+
+  lazy val youtubeDlConfigRaw =
+    s"""
+       |# Always extract audio
+       |-x
+       |
+       |# Mp3
+       |--audio-format mp3
+       |
+       |# Save all videos under Movies directory in your home directory
+       |-o ${downloadDir.getAbsolutePath}/$filenamePrefix-%(id)s.mp3
+    """.stripMargin
 
   system.scheduler.schedule(initialDelay = 30 seconds, interval = cleanupInterval minutes) {
     cleanupRoutine

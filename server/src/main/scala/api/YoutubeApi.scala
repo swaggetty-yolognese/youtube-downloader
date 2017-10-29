@@ -1,10 +1,8 @@
 package api
 
 import java.nio.file.Paths
-
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.directives.{ LoggingMagnet, RespondWithDirectives }
-
 import scala.compat.java8.OptionConverters._
 import scala.collection.immutable.Seq
 import akka.http.scaladsl.model.HttpMethods._
@@ -81,11 +79,10 @@ trait EnableCORSDirectives extends RespondWithDirectives with LazyLogging {
 
   def headerLogger: LoggingMagnet[HttpRequest => Unit] = LoggingMagnet { loggingAdapter => request =>
     loggingAdapter.debug(s"Headers: ${request._3.toString()}")
-    loggingAdapter.debug(s"HTTP Method: ${request._1}")
   }
 
   def logClientInfo = extractClientIP map { remoteAddress =>
-    val ip = remoteAddress.getAddress.asScala.map(_.getHostAddress).getOrElse("")
+    val ip = remoteAddress.getAddress.asScala.map(_.getHostAddress).getOrElse("None")
     logger.info(s"IP: $ip ")
   }
 
