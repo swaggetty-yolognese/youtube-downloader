@@ -56,7 +56,6 @@ object YoutubeService extends LazyLogging {
 
     downloadF.map { _ =>
       logger.info(s"Downloaded $videoUrl")
-      
 
       if (fileName == "")
         throw new IllegalArgumentException("Filename not found")
