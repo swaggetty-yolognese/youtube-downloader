@@ -1,0 +1,9 @@
+body {
+	background: none;
+}
+
+body div h1 {
+	color: none;
+	text-align: center;
+	font-size: 250%;
+}
